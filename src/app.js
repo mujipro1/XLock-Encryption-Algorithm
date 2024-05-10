@@ -1,10 +1,28 @@
 document.getElementById("encBtn").addEventListener("click", function() {
-    selected = document.getElementById("selectID").value;
-    plaintext = document.getElementById("text1").value;
+    const selected = document.getElementById("selectID").value;
+    const text = document.getElementById("text1").value;
+    const key = document.getElementById("key").value;
+
+    if (key == "" || key == null || key == undefined) {
+        displayError("Key is required!");
+        return;
+    }
+    if (/\d/.test(key)) {
+        displayError("Key should not contain numbers!");
+        return;
+    }
+    if (text == "") {
+        displayError("Text is required!");
+        return;
+    }
+
     if (selected == "0") {
+        encrypted = encrypt(text, key);
     }
     else{
+        decrypted = decrypt(text, key);
     }
+    document.getElementById("text2").value = selected == "0" ? encrypted : decrypted;
 });
 
 
@@ -23,3 +41,16 @@ document.getElementById("selectID").addEventListener("change", function() {
         text2.placeholder = "Plain text";
     }
 });
+
+
+function displayError(text){
+    document.getElementById('error').innerText = text;
+    document.getElementById('errorbox').classList.add('show');
+    document.getElementById('errorbox').classList.remove('hide');
+    
+    setTimeout(function() {
+        document.getElementById('errorbox').classList.add('hide');
+        document.getElementById('errorbox').classList.remove('show');
+    }, 3000);
+    return;
+}
