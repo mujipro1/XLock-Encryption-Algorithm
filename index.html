@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="src/bootstrap/bootstrap.css">
+  <link rel="stylesheet" href="src/bootstrap/bootstrap.min.css">
+  <link rel="stylesheet" href="src/app.css">
+</head>
+
+
+<body>
+  <div class="c1">
+    
+    <div class="d-flex justify-content-center">
+        <a class="navbar-brand" href="/index.html"><img src="src/logo.png" id="logo"></a>
+    </div>
+      
+      <section class="section mt-3 container">
+          <div class="row">
+            <div class="col-md-5 d-flex align-items-center justify-content-center">
+              <img src="src/picture.png" alt="img" class="phone img-fluid">
+            </div>
+            <div class="col-md-7">
+              <div class="d-flex align-items-center h-100 vertical-center">
+                <div class="d-flex align-items-center justify-content-center">
+
+                <select class="m-2" id="selectID">
+                  <option value="0" selected>Encrypt</option>
+                  <option value="1">Decrypt</option>
+                </select>
+
+                <input id="key" class="m-2" type="text" placeholder="Enter key" required>
+
+                </div>
+
+                  <textarea class=" my-3" id="text1" rows="5" placeholder="Enter plain text"></textarea>
+                  <button id="encBtn" class="btn green-button">Encrypt</button>
+                <h3 id="labelID"></h3>
+                <textarea class=" my-2" id="text2" rows="5" placeholder="Cipher text"></textarea>
+              </div>
+            </div>
+          </div>
+      </section>
+      
+  <footer></footer>
+  </div>
+  
+</body>
+
+<script src="src/app.js"></script>
+<script src="src/bootstrap/bootstrap.bundle.js"></script>
+<script src="src/bootstrap/bootstrap.bundle.min.js"></script>
+</html>
