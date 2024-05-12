@@ -19,12 +19,13 @@
       
       <section class="section mt-3 container">
           <div class="row">
-            <div class="col-md-4 d-flex align-items-center justify-content-center">
+            <div class="col-md-5 d-flex align-items-center justify-content-center">
                 <select class="m-2" id="codeSelect">
                     <option value="0" selected>Python</option>
                     <option value="1">Javascript</option>
                 </select>
                 <button id="codeBtn" class="btn mx-3 green-button">Copy</button>
+                <button id="downloadBtn" class="btn w85 green-button">Download</button>
             </div>
             <div class="col-md-2">
             </div>
@@ -70,6 +71,18 @@
                 codetext.value = data;
             });
         }
+    });
+
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+        const a = document.createElement('a');
+        if (codeSelect.value == 0) {
+            a.download = 'XLock.py';
+        } else {
+            a.download = 'XLock.js';
+        }
+        const file = new Blob([codetext.value], {type: 'text/plain'});
+        a.href = URL.createObjectURL(file);
+        a.click();
     });
 </script>
 

@@ -16,11 +16,16 @@ document.getElementById("encBtn").addEventListener("click", function() {
         return;
     }
 
+    if (text.length < 16) {
+        displayError("Text should be atleast 16 characters long!");
+        return;
+    }
+
     if (selected == "0") {
-        encrypted = encrypt(text, key);
+        encrypted = encrypt_string(text, key);
     }
     else{
-        decrypted = decrypt(text, key);
+        decrypted = decrypt_string(text, key);
     }
     document.getElementById("text2").value = selected == "0" ? encrypted : decrypted;
 });

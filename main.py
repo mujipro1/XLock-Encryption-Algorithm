@@ -32,7 +32,6 @@ def key_generator(input_string, rounds):
     original_key = letters_to_binary(input_string)
     generated_keys = bitwise_shift_key_generation(original_key)
     generated_keys = [int(key, 2) for key in generated_keys ]
-    
     string = ""
     for i in range(len(generated_keys)):
         string += str(generated_keys[i])
@@ -43,13 +42,14 @@ def key_generator(input_string, rounds):
     generated_keys = generated_keys[:-1]
     
     generated_keys = generated_keys[::-1]
+
+
     for i in range(len(generated_keys)):
         generated_keys[i] = generated_keys[i][::-1]
 
     if len(generated_keys) < rounds:
         for i in range(rounds - len(generated_keys)):
             generated_keys.append(generated_keys[i])
-                                
     return generated_keys
 
 def per_round_keys(keys, i, rounds):
@@ -73,8 +73,7 @@ def mix_columns(s):
         """Multiply on GF(2^8)."""
         return ((a << 1) ^ 0x1B) if (a & 0x80) else (a << 1)
     
-    s = [s[i:i+4] for i in range(0, len(s), 4)]    
-    s = [[int(hex(b), 16) for b in row] for row in s]
+    s = [s[i:i+4] for i in range(0, len(s), 4)]
     
     for i in range(4):
         t = s[0][i] ^ s[1][i] ^ s[2][i] ^ s[3][i]
@@ -94,7 +93,6 @@ def inv_mix_columns(s):
         return ((a << 1) ^ 0x1B) if (a & 0x80) else (a << 1)
 
     s = [s[i:i+4] for i in range(0, len(s), 4)]
-    s = [[int(hex(b), 16) for b in row] for row in s]
 
     for i in range(4):
         u = xtime(xtime(s[0][i] ^ s[2][i]))
@@ -182,9 +180,9 @@ def decrypt(encrypted_text, key, rounds):
     return encrypted_text
 
 
-KEY = "Great"
+KEY = "GREAT"
 string = "HELLOIAMGOODATIT"
-rounds = 1
+rounds = 30
 
 keys = key_generator(KEY, rounds)
 start = time.time()
@@ -202,6 +200,7 @@ print("Encrypted:", outputs)
 
 decrypts = []
 for i in range(len(strings) - 1):
+    keysx = per_round_keys(keys, i, rounds)
     decrypted = decrypt(outputs[i], keysx, rounds)
     decrypts.append(decrypted)    
 print("Decrypted:", decrypts)

@@ -10,19 +10,23 @@ function keyGenerator(inputString, rounds) {
 
     function bitwiseShiftKeyGeneration(originalKey) {
         let keys = [originalKey];
-        let currentKey = originalKey;
+        let currentKey = BigInt(originalKey);
         for (let i = 0; i < 127; i++) {
-            currentKey = currentKey >>> 1;
-            currentKey = currentKey & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+            currentKey = currentKey >> BigInt(1);  
+            mask = BigInt("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+            currentKey = (currentKey >> BigInt(0)) & mask;
+
             if (!keys.includes(currentKey)) {
                 keys.push(currentKey);
             }
         }
         
-        currentKey = originalKey;
+        currentKey = BigInt(originalKey);
         for (let i = 0; i < 127; i++) {
-            currentKey = currentKey << 1;
-            currentKey = currentKey & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+            currentKey = currentKey << BigInt(1);
+            mask = BigInt("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+            currentKey = (currentKey >> BigInt(0)) & mask;
+
             if (!keys.includes(currentKey)) {
                 keys.push(currentKey);
             }
@@ -33,27 +37,34 @@ function keyGenerator(inputString, rounds) {
 
     let originalKey = lettersToBinary(inputString);
     let generatedKeys = bitwiseShiftKeyGeneration(originalKey);
-    generatedKeys = generatedKeys.map(key => parseInt(key, 2));
+    for (let i = 0; i < generatedKeys.length; i++) {
+        // convert to integer without using exponential notation
+        generatedKeys[i] = BigInt("0b" + generatedKeys[i]);
+        generatedKeys[i] = generatedKeys[i].toString();
+    }
 
     let string = "";
     for (let i = 0; i < generatedKeys.length; i++) {
-        string += generatedKeys[i].toString();
+        string += generatedKeys[i];
     }
 
     generatedKeys = [];
     for (let i = 0; i < string.length; i += 16) {
         generatedKeys.push(string.substring(i, i + 16));
     }
-    generatedKeys = generatedKeys.slice(0, -1);
-    
-    generatedKeys = generatedKeys.reverse().map(key => key.split("").reverse().join(""));
+    generatedKeys = generatedKeys.slice(0, -1);    
+
+    // reverse the array
+    generatedKeys = generatedKeys.reverse();
+    // reverse each element in the array
+    generatedKeys = generatedKeys.map(key => key.split("").reverse().join(""));
 
     if (generatedKeys.length < rounds) {
         for (let i = 0; i < rounds - generatedKeys.length; i++) {
             generatedKeys.push(generatedKeys[i]);
         }
     }
-
+    
     return generatedKeys;
 }
 
@@ -72,63 +83,74 @@ function pad(string) {
     string += length;
     return string;
 }
+function invMixColumns(s) {
+    function xtime(a) {
+        return (a & 0x80) ? ((a << 1) ^ 0x1B) : (a << 1);
+    }
+
+    let sArr = [];
+    for (let i = 0; i < s.length; i += 4) {
+        sArr.push(s.slice(i, i + 4));
+    }
+
+    for (let i = 0; i < 4; i++) {
+        let u = xtime(xtime(sArr[0][i] ^ sArr[2][i]));
+        let v = xtime(xtime(sArr[1][i] ^ sArr[3][i]));
+        sArr[0][i] ^= u;
+        sArr[1][i] ^= v;
+        sArr[2][i] ^= u;
+        sArr[3][i] ^= v;
+    }
+
+    let sFlat = [];
+    for (let a of sArr) {
+        for (let b of a) {
+            sFlat.push(b);
+        }
+    }
+
+    return mixColumns(sFlat);
+}
 
 function mixColumns(s) {
     function xtime(a) {
-        return ((a << 1) ^ 0x1B) ^ ((a & 0x80) ? 1 : 0);
+        return (a & 0x80) ? ((a << 1) ^ 0x1B) : (a << 1);
     }
 
-    s = s.match(/.{1,4}/g).map(row => row.split("").map(b => parseInt(b, 16)));
+    let sArr = [];
+    for (let i = 0; i < s.length; i += 4) {
+        sArr.push(s.slice(i, i + 4));
+    }
 
     for (let i = 0; i < 4; i++) {
-        let t = s[0][i] ^ s[1][i] ^ s[2][i] ^ s[3][i];
-        let u = s[0][i];
-        s[0][i] ^= t ^ xtime(s[0][i] ^ s[1][i]);
-        s[1][i] ^= t ^ xtime(s[1][i] ^ s[2][i]);
-        s[2][i] ^= t ^ xtime(s[2][i] ^ s[3][i]);
-        s[3][i] ^= t ^ xtime(s[3][i] ^ u);
+        let t = sArr[0][i] ^ sArr[1][i] ^ sArr[2][i] ^ sArr[3][i];
+        let u = sArr[0][i];
+        sArr[0][i] ^= t ^ xtime(sArr[0][i] ^ sArr[1][i]);
+        sArr[1][i] ^= t ^ xtime(sArr[1][i] ^ sArr[2][i]);
+        sArr[2][i] ^= t ^ xtime(sArr[2][i] ^ sArr[3][i]);
+        sArr[3][i] ^= t ^ xtime(sArr[3][i] ^ u);
     }
 
-    return s.flat().map(b => b.toString(16)).join("");
-}
-
-function invMixColumns(s) {
-    function xtime(a) {
-        return ((a << 1) ^ 0x1B) ^ ((a & 0x80) ? 1 : 0);
-    }
-
-    s = s.match(/.{1,4}/g).map(row => row.split("").map(b => parseInt(b, 16)));
-
-    for (let i = 0; i < 4; i++) {
-        let u = xtime(xtime(s[0][i] ^ s[2][i]));
-        let v = xtime(xtime(s[1][i] ^ s[3][i]));
-        s[0][i] ^= u;
-        s[1][i] ^= v;
-        s[2][i] ^= u;
-        s[3][i] ^= v;
-    }
-
-    s = s.flat().map(b => b.toString(16)).join("");
-    return mixColumns(s);
+    return [].concat(...sArr);
 }
 
 function encryptBlock(text, key) {
     let output = [];
-
+    
     for (let i = 0; i < text.length; i++) {
-        let number = text.charCodeAt(i) - 65;
+        let charCode = text[i].toUpperCase().charCodeAt(0) - 65;
         let shift = parseInt(key[i]);
-        output.push((number + shift) % 26);
-    }
+        output.push((charCode + shift) % 26);
 
+    }
     for (let i = 0; i < output.length - 1; i += 2) {
         let temp = output[i];
         output[i] = output[i + 1];
         output[i + 1] = temp;
     }
-
+    
     output = mixColumns(output);
-
+    
     for (let i = 0; i < output.length - 1; i++) {
         output[i + 1] = (output[i] + output[i + 1]) % 26;
     }
@@ -169,6 +191,7 @@ function decryptBlock(text, key) {
 
 function encrypt(text, key, rounds) {
     text = text.replace(/[^a-zA-Z]/g, "").toUpperCase();
+
     for (let i = 0; i < rounds; i++) {
         let roundKey = key[i];
         text = encryptBlock(text, roundKey);
@@ -184,30 +207,37 @@ function decrypt(encryptedText, key, rounds) {
     return encryptedText;
 }
 
-const KEY = "Great";
-let string = "HELLOIAMGOODATIT";
-const rounds = 1;
 
-let keys = keyGenerator(KEY, rounds);
-let start = Date.now();
+function encrypt_string(string, KEY){
+    rounds = 30;
+    // string = string.replace(/[^a-zA-Z]/g, "").toUpperCase();
 
-string = pad(string);
-let strings = string.match(/.{1,16}/g);
-let outputs = [];
+    let keys = keyGenerator(KEY, rounds);
 
-for (let i = 0; i < strings.length - 1; i++) {
-    let keysx = perRoundKeys(keys, i, rounds);
-    let encrypted = encrypt(strings[i], keysx, rounds);
-    outputs.push(encrypted);
+    string = pad(string);
+    let strings = string.match(/.{1,16}/g);
+    let outputs = [];
+    
+    for (let i = 0; i < strings.length-1; i++) {
+        let keysx = perRoundKeys(keys, i, rounds);
+        let encrypted = encrypt(strings[i], keysx, rounds);
+        console.log(encrypted);
+        outputs.push(encrypted);
+    }
+    return outputs.join("");
 }
 
-console.log("Encrypted:", outputs);
 
-let decrypts = [];
-for (let i = 0; i < strings.length - 1; i++) {
-    let decrypted = decrypt(outputs[i], keysx, rounds);
-    decrypts.push(decrypted);
+function decrypt_string(encrypted, KEY){
+    rounds = 30;
+    
+    let keys = keyGenerator(KEY, rounds);
+    let strings = encrypted.match(/.{1,16}/g);
+    let decrypts = [];
+    for (let i = 0; i < strings.length ; i++) {
+        let keysx = perRoundKeys(keys, i, rounds);
+        let decrypted = decrypt(strings[i], keysx, rounds);
+        decrypts.push(decrypted);
+    }
+    return decrypts.join("");
 }
-console.log("Decrypted:", decrypts);
-
-console.log("Time taken:", (Date.now() - start) / 1000);

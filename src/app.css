@@ -113,6 +113,16 @@ select:focus{
 .w{
   width: 75%;
 }
+.w85{
+  width: 95%;
+}
+
+@media 
+  only screen and (max-width: 600px){
+    .w85{
+      width: 120%;
+    }
+}
 
 .phone{
   height: 80%;
