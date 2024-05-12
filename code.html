@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="src/bootstrap/bootstrap.css">
+  <link rel="stylesheet" href="src/bootstrap/bootstrap.min.css">
+  <link rel="stylesheet" href="src/app.css">
+</head>
+
+
+<body>
+  <div class="c1">
+    
+    <div class="d-flex justify-content-center">
+        <a class="navbar-brand" href="/index.html"><img src="src/logo.png" id="logo"></a>
+    </div>
+      
+      <section class="section mt-3 container">
+          <div class="row">
+            <div class="col-md-4 d-flex align-items-center justify-content-center">
+                <select class="m-2" id="codeSelect">
+                    <option value="0" selected>Python</option>
+                    <option value="1">Javascript</option>
+                </select>
+                <button id="codeBtn" class="btn mx-3 green-button">Copy</button>
+            </div>
+            <div class="col-md-2">
+            </div>
+            <textarea class=" my-3" id="codetext" ></textarea>
+          </div>
+      </section>
+      
+  <footer></footer>
+  </div>
+</body>
+
+<script>
+    const codetext = document.getElementById('codetext');
+    const codeBtn = document.getElementById('codeBtn');
+    const codeSelect = document.getElementById('codeSelect');
+
+    // read python code from file
+    fetch('main.py')
+    .then(response => response.text())
+    .then(data => {
+        codetext.rows = data.split('\n').length;
+        codetext.value = data;
+    });
+
+    codeBtn.addEventListener('click', () => {
+        codetext.select();
+        document.execCommand('copy');
+    });
+
+    codeSelect.addEventListener('change', () => {
+        if (codeSelect.value == 0) {
+            fetch('main.py')
+            .then(response => response.text())
+            .then(data => {
+                codetext.rows = data.split('\n').length;
+                codetext.value = data;
+            });
+        } else {
+            fetch('src/algorithm.js')
+            .then(response => response.text())
+            .then(data => {
+                codetext.rows = data.split('\n').length;
+                codetext.value = data;
+            });
+        }
+    });
+</script>
+
+</html>

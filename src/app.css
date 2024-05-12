@@ -30,7 +30,6 @@ html{
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh; /* Adjust as needed */
 }
 
 
@@ -69,6 +68,11 @@ html{
   border: 2px solid var(--mainopa);
   transition: all .2s ease-in-out;
 }
+#key:focus{
+  outline: none;
+  border : 2px solid var(--main);
+  transition: all .2s ease-in-out;
+}
 
 textarea{
   background-color: #32044a70;
@@ -96,6 +100,9 @@ select{
   transition: all .2s ease-in-out;
 }
 
+#codetext{
+  overflow-y: hidden;
+}
 
 select:focus{
   outline: none;
@@ -103,9 +110,13 @@ select:focus{
   transition: all .2s ease-in-out;
 }
 
+.w{
+  width: 75%;
+}
+
 .phone{
-  height: 95%;
-  width: 85%;
+  height: 80%;
+  width: 78%;
   margin-top: 10px;
   border-radius: 20px;
 }
