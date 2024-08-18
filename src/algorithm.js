@@ -149,12 +149,13 @@ function encryptBlock(text, key) {
         output[i + 1] = temp;
     }
     
-    output = mixColumns(output);
     
     for (let i = 0; i < output.length - 1; i++) {
         output[i + 1] = (output[i] + output[i + 1]) % 26;
     }
 
+    // output = mixColumns(output);
+    
     return output.map(i => String.fromCharCode(65 + i)).join("");
 }
 
@@ -163,6 +164,9 @@ function decryptBlock(text, key) {
     for (let i = 0; i < text.length; i++) {
         output.push(text.charCodeAt(i) - 65);
     }
+
+    // output = invMixColumns(output);
+    
     let out2 = output.slice();
     
     out2 = [output[0]];
@@ -171,7 +175,6 @@ function decryptBlock(text, key) {
     }
     output = out2;
 
-    output = invMixColumns(output);
 
     for (let i = 0; i < output.length - 1; i += 2) {
         let temp = output[i];
@@ -207,9 +210,9 @@ function decrypt(encryptedText, key, rounds) {
     return encryptedText;
 }
 
+rounds = 1;
 
 function encrypt_string(string, KEY){
-    rounds = 30;
     // string = string.replace(/[^a-zA-Z]/g, "").toUpperCase();
 
     let keys = keyGenerator(KEY, rounds);
@@ -229,7 +232,6 @@ function encrypt_string(string, KEY){
 
 
 function decrypt_string(encrypted, KEY){
-    rounds = 30;
     
     let keys = keyGenerator(KEY, rounds);
     let strings = encrypted.match(/.{1,16}/g);

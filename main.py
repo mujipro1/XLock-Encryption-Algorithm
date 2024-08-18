@@ -1,3 +1,4 @@
+import lock
 import time 
 
 def key_generator(input_string, rounds):
@@ -52,13 +53,38 @@ def key_generator(input_string, rounds):
             generated_keys.append(generated_keys[i])
     return generated_keys
 
+
+def char_to_number(char):
+    """
+    Map a character to a number.
+    A -> 0, B -> 1, C -> 2, ..., Z -> 25
+    """
+    if char.isalpha():
+        return ord(char.upper()) - ord('A')
+
+def number_to_char(number):
+    """
+    Map a number to a character.
+    0 -> A, 1 -> B, 2 -> C, ..., 25 -> Z
+    """
+    if 0 <= number <= 25:
+        return chr(number + ord('A'))
+
+
 def per_round_keys(keys, i, rounds):
     """Returns the keys for each round."""
     return keys[i*rounds:rounds+(i*rounds)]
 
 def pad(string):
     """Pads the string to make it a multiple of 16 bytes."""
+    string = string.replace(" ", "")
     length = str(len(string))
+    
+    n = ""
+    for i in range(len(length)):
+        n += number_to_char(int(length[i]))
+    length = n
+        
     while len(length) < 8:
         length = '0' + length
     while (len(string) % 16) - 8 != 0:
@@ -111,23 +137,23 @@ def encrypt_block(text, key):
     
     # substitution with key
     for i in range(len(text)):
-        number = ord(text[i].upper()) - 65
+        number = ord(text[i]) - 65
         shift = int(key[i])
-        output.append((number+shift) % 26)
-
+        output.append((number + shift) % 26)
+        
     # couple swapping
     for i in range(0, len(output)-1, 2):
         temp = output[i]
         output[i] = output[i+1]
         output[i+1] = temp
 
-    # mix columns operation
-    output = mix_columns(output)
-    
     
     # cumulative addition
     for i in range(len(output)-1):
         output[i+1] = (output[i] + output[i+1]) % 26
+    
+    # mix columns operation
+    # output = mix_columns(output)
     
     return "".join([chr(65 + i) for i in output])
 
@@ -139,14 +165,15 @@ def decrypt_block(text, key):
         output.append(ord(i) - 65)
     out2 = output.copy()
     
+    # inverse mix columns operation
+    # output = inv_mix_columns(output)
+    
     # cumulative subtraction
     out2 = [output[0]]  # Initialize out2 with the first element of output
     for i in range(len(output)-1):
         out2.append((26 + output[i+1] - output[i]) % 26)
     output = out2
 
-    # inverse mix columns operation
-    output = inv_mix_columns(output)
     
     # couple swapping
     for i in range(0, len(output)-1, 2):
@@ -157,16 +184,16 @@ def decrypt_block(text, key):
     # substitution with key
     text = []
     for i in range(len(output)):
-        number = output[i]
+        number = output[i] 
         shift = int(key[i])
-        text.append(chr(65 + (number-shift) % 26))
+        output_number = (number - shift) % 26
+        text.append(chr(output_number + 65))
 
     return "".join(text)
 
 
 def encrypt(text, key, rounds):
     """Encrypts the text using the key and rounds."""
-    text = "".join([i for i in text if i.isalpha()]).upper()
     for i in range(rounds):
         round_key = key[i]
         text = encrypt_block(text, round_key)
@@ -181,28 +208,41 @@ def decrypt(encrypted_text, key, rounds):
 
 
 KEY = "GREAT"
-string = "HELLOIAMGOODATIT"
-rounds = 30
-
+string = "HELLO WORLD"
+rounds = 200
 keys = key_generator(KEY, rounds)
-start = time.time()
+start = time.time() 
+
 
 string = pad(string)
 strings = [string[i:i+16] for i in range(0, len(string), 16)]
 outputs = []
 
-for i in range(len(strings) - 1):
+for i in range(len(strings)):
     keysx = per_round_keys(keys, i, rounds)
     encrypted = encrypt(strings[i], keysx, rounds)
+    encrypted = lock.encrypt(strings[i], keysx)
     outputs.append(encrypted)
+    
 
-print("Encrypted:", outputs)
-
+print("Encrypted:", "".join(outputs))
+print()
 decrypts = []
-for i in range(len(strings) - 1):
+for i in range(len(strings)):
     keysx = per_round_keys(keys, i, rounds)
     decrypted = decrypt(outputs[i], keysx, rounds)
-    decrypts.append(decrypted)    
+    decrypted = lock.decrypt(outputs[i], keysx)
+    decrypts.append(decrypted)  
+    
+last = decrypts[-1][-2:]
+n = ''
+for i in range(len(last)):
+    n += str(char_to_number(last[i]))
+n = int(n)
+
+dec = "".join(decrypts)
+decrypts = dec[:n]
+
 print("Decrypted:", decrypts)
 
-print("Time taken:", time.time() - start)
+# print("Time taken:", time.time() - start)
